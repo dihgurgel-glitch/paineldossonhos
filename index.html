@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🟣 PAINEL DOS SONHOS</title>
+    <style>
+        :root {
+            --primary: #8e44ad;
+            --primary-light: #9b59b6;
+            --accent: #f1c40f;
+            --bg: #f8f9fa;
+            --text: #2c3e50;
+            --white: #ffffff;
+            --danger: #e74c3c;
+            --success: #27ae60;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        body { background-color: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
+
+        .container { max-width: 1100px; margin: auto; }
+
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { font-size: 2.5rem; color: var(--primary); }
+
+        /* Formulário de Cadastro de Sonhos */
+        .card { background: var(--white); border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 40px; }
+        .card h2 { margin-bottom: 20px; color: var(--primary); font-size: 1.5rem; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .input-group { display: flex; flex-direction: column; }
+        label { font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; color: #555; }
+        input { padding: 12px; border: 2px solid #eee; border-radius: 8px; outline: none; transition: 0.3s; font-size: 1rem; }
+        input:focus { border-color: var(--primary-light); }
+
+        .btn { border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1rem; color: white; }
+        .btn-add { background: var(--primary); width: 100%; margin-top: 20px; }
+        .btn-add:hover { background: var(--primary-light); transform: translateY(-2px); }
+
+        /* Lista de Sonhos */
+        .sonho-container { background: var(--white); border-radius: 15px; padding: 25px; margin-bottom: 50px; border-top: 8px solid var(--primary); box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: relative; }
+        
+        .sonho-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; }
+        .sonho-titulo h3 { font-size: 1.8rem; text-transform: uppercase; }
+        .sonho-data { font-size: 0.9rem; color: #7f8c8d; }
+
+        .sonho-financas { text-align: right; min-width: 250px; }
+        .valor-total { font-size: 1.1rem; color: #7f8c8d; }
+        .valor-restante { font-size: 1.8rem; font-weight: 800; display: block; }
+
+        .acoes-sonho { margin-top: 15px; display: flex; gap: 10px; }
+        .btn-edit { background: var(--accent); color: #333; }
+        .btn-del { background: var(--danger); }
+
+        /* Tabela de Orçamentos */
+        .table-wrapper { overflow-x: auto; margin: 25px 0; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f4f6f7; padding: 15px; text-align: left; font-size: 0.85rem; text-transform: uppercase; color: #666; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.95rem; }
+        
+        .btn-orc { background: var(--success); font-size: 0.9rem; margin-top: 10px; }
+
+        /* Área de Fotos */
+        .area-fotos { background: #fafafa; padding: 20px; border-radius: 10px; }
+        .area-fotos h4 { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .foto-item { position: relative; height: 140px; border-radius: 8px; overflow: hidden; border: 2px solid #eee; }
+        .foto-item img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-remove-foto { position: absolute; top: 5px; right: 5px; background: rgba(231, 76, 60, 0.8); border: none; color: white; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .sonho-header { flex-direction: column; text-align: center; }
+            .sonho-financas { text-align: center; width: 100%; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🟣 PAINEL DOS SONHOS</h1>
+        <p>Transforme seus desejos em metas reais.</p>
+    </header>
+
+    <section class="card">
+        <h2 id="form-title">📝 Novo Sonho Financeiro</h2>
+        <div class="form-grid">
+            <input type="hidden" id="edit-id">
+            <div class="input-group">
+                <label>Nome do Sonho</label>
+                <input type="text" id="nome" placeholder="Ex: Reforma da Cozinha">
+            </div>
+            <div class="input-group">
+                <label>Início</label>
+                <input type="date" id="data_inicio">
+            </div>
+            <div class="input-group">
+                <label>Realização</label>
+                <input type="date" id="data_fim">
+            </div>
+            <div class="input-group">
+                <label>Valor Máximo (R$)</label>
+                <input type="number" id="valor_max" placeholder="0,00">
+            </div>
+        </div>
+        <button class="btn btn-add" onclick="salvarSonho()">Salvar no Painel</button>
+    </section>
+
+    <main id="listaSonhos"></main>
+</div>
+
+<script>
+    // Banco de Dados Local
+    let sonhos = JSON.parse(localStorage.getItem('sonhos_db')) || [];
+
+    // Função para Salvar/Editar Sonho
+    function salvarSonho() {
+        const id = document.getElementById('edit-id').value;
+        const nome = document.getElementById('nome').value;
+        const inicio = document.getElementById('data_inicio').value;
+        const fim = document.getElementById('data_fim').value;
+        const valor = parseFloat(document.getElementById('valor_max').value);
+
+        if(!nome || !valor) return alert("Nome e Valor são obrigatórios!");
+
+        if(id) {
+            // Modo Edição
+            const index = sonhos.findIndex(s => s.id == id);
+            sonhos[index] = { ...sonhos[index], nome, inicio, fim, valor_max: valor };
+        } else {
+            // Novo Sonho
+            sonhos.push({
+                id: Date.now(),
+                nome, inicio, fim, valor_max: valor,
+                orcamentos: [],
+                fotos: []
+            });
+        }
+
+        limparForm();
+        persistir();
+    }
+
+    function limparForm() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('nome').value = '';
+        document.getElementById('data_inicio').value = '';
+        document.getElementById('data_fim').value = '';
+        document.getElementById('valor_max').value = '';
+        document.getElementById('form-title').innerText = "📝 Novo Sonho Financeiro";
+    }
+
+    function prepararEdicao(id) {
+        const sonho = sonhos.find(s => s.id == id);
+        document.getElementById('edit-id').value = sonho.id;
+        document.getElementById('nome').value = sonho.nome;
+        document.getElementById('data_inicio').value = sonho.inicio;
+        document.getElementById('data_fim').value = sonho.fim;
+        document.getElementById('valor_max').value = sonho.valor_max;
+        document.getElementById('form-title').innerText = "✏️ Editando: " + sonho.nome;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function excluirSonho(id) {
+        if(confirm("Tem certeza que deseja excluir este sonho? Todos os orçamentos e fotos serão perdidos.")) {
+            sonhos = sonhos.filter(s => s.id != id);
+            persistir();
+        }
+    }
+
+    // Gerenciamento de Orçamentos
+    function addOrcamento(sonhoId) {
+        const fornecedor = prompt("Fornecedor:");
+        const item = prompt("Item:");
+        const inicio = prompt("Data Início (DD/MM/AAAA):");
+        const fim = prompt("Data Finalização (DD/MM/AAAA):");
+        const valor = parseFloat(prompt("Valor do Orçamento (R$):"));
+
+        if(!fornecedor || isNaN(valor)) return alert("Dados inválidos.");
+
+        const sonho = sonhos.find(s => s.id == sonhoId);
+        const totalAtual = sonho.orcamentos.reduce((acc, o) => acc + o.valor, 0);
+
+        if(totalAtual + valor > sonho.valor_max) {
+            return alert("ERRO: Este orçamento ultrapassa o limite definido para o sonho!");
+        }
+
+        sonho.orcamentos.push({ idO: Date.now(), fornecedor, item, inicio, fim, valor });
+        persistir();
+    }
+
+    function excluirOrcamento(sonhoId, orcId) {
+        if(confirm("Excluir este orçamento?")) {
+            const sonho = sonhos.find(s => s.id == sonhoId);
+            sonho.orcamentos = sonho.orcamentos.filter(o => o.idO != orcId);
+            persistir();
+        }
+    }
+
+    // Gerenciamento de Fotos
+    function uploadFoto(event, sonhoId) {
+        const files = event.target.files;
+        const sonho = sonhos.find(s => s.id == sonhoId);
+
+        if(sonho.fotos.length + files.length > 6) {
+            return alert("Limite máximo de 6 fotos por sonho.");
+        }
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                sonho.fotos.push(e.target.result);
+                persistir();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function removerFoto(sonhoId, fotoIndex) {
+        const sonho = sonhos.find(s => s.id == sonhoId);
+        sonho.fotos.splice(fotoIndex, 1);
+        persistir();
+    }
+
+    function persistir() {
+        localStorage.setItem('sonhos_db', JSON.stringify(sonhos));
+        renderizar();
+    }
+
+    function renderizar() {
+        const list = document.getElementById('listaSonhos');
+        list.innerHTML = '';
+
+        sonhos.forEach(sonho => {
+            const gasto = sonho.orcamentos.reduce((acc, o) => acc + o.valor, 0);
+            const saldo = sonho.valor_max - gasto;
+
+            const section = document.createElement('section');
+            section.className = 'sonho-container';
+            section.innerHTML = `
+                <div class="sonho-header">
+                    <div class="sonho-titulo">
+                        <h3>${sonho.nome}</h3>
+                        <p class="sonho-data">🗓️ ${sonho.inicio || '--'} até ${sonho.fim || '--'}</p>
+                        <div class="acoes-sonho">
+                            <button class="btn btn-edit" onclick="prepararEdicao(${sonho.id})">Editar</button>
+                            <button class="btn btn-del" onclick="excluirSonho(${sonho.id})">Excluir</button>
+                        </div>
+                    </div>
+                    <div class="sonho-financas">
+                        <span class="valor-total">Limite: R$ ${sonho.valor_max.toLocaleString('pt-br')}</span>
+                        <span class="valor-restante" style="color: ${saldo < 100 ? 'var(--danger)' : 'var(--success)'}">
+                            Saldo: R$ ${saldo.toLocaleString('pt-br')}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fornecedor</th>
+                                <th>Item</th>
+                                <th>Início</th>
+                                <th>Fim</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sonho.orcamentos.map(o => `
+                                <tr>
+                                    <td>${o.fornecedor}</td>
+                                    <td>${o.item}</td>
+                                    <td>${o.inicio}</td>
+                                    <td>${o.fim}</td>
+                                    <td>R$ ${o.valor.toLocaleString('pt-br')}</td>
+                                    <td><button class="btn-del" onclick="excluirOrcamento(${sonho.id}, ${o.idO})">×</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <button class="btn btn-orc" onclick="addOrcamento(${sonho.id})">+ Adicionar Orçamento</button>
+                </div>
+
+                <div class="area-fotos">
+                    <h4>📷 Fotos do Sonho (${sonho.fotos.length}/6)</h4>
+                    <input type="file" accept="image/*" multiple onchange="uploadFoto(event, ${sonho.id})" ${sonho.fotos.length >= 6 ? 'disabled' : ''}>
+                    <div class="galeria">
+                        ${sonho.fotos.map((f, index) => `
+                            <div class="foto-item">
+                                <img src="${f}">
+                                <button class="btn-remove-foto" onclick="removerFoto(${sonho.id}, ${index})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            list.appendChild(section);
+        });
+    }
+
+    renderizar();
+</script>
+
+</body>
+</html>
